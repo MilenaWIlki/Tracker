@@ -1,0 +1,29 @@
+import requests
+from bs4 import BeautifulSoup
+import pandas as pd
+import matplotlib.pyplot as plt
+
+def get_crypto_prices():
+    url = "https://coinmarketcap.com/"
+    response = requests.get(url)
+    soup = BeautifulSoup(response.text, 'html.parser')
+
+    crypto_prices = {}
+    for row in soup.select('tbody tr'):
+        name = row.select_one('.cmc-table__column-name').get_text(strip=True)
+        price = float(row.select_one('.cmc-table__column-price').get_text(strip=True).replace(',', '').replace('$', ''))
+        crypto_prices[name] = price
+
+    return crypto_prices
+
+def visualize_crypto_prices(prices):
+    df = pd.DataFrame(list(prices.items()), columns=['Cryptocurrency', 'Price (USD)'])
+    df = df.sort_values(by='Price (USD)', ascending=False)
+    df.plot(kind='bar', x='Cryptocurrency', y='Price (USD)', legend=False)
+    plt.title('Cryptocurrency Prices')
+    plt.ylabel('Price (USD)')
+    plt.show()
+
+# Example Usage:
+crypto_prices = get_crypto_prices()
+visualize_crypto_prices(crypto_prices)
